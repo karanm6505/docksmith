@@ -1,0 +1,117 @@
+DOCKSMITH C BINARY COMMANDS
+
+Binary:
+- Name: docksmith_c
+
+Build binary:
+make
+
+Show help:
+./docksmith_c --help
+
+General usage:
+./docksmith_c <command> [arguments]
+
+Available commands:
+- build
+- run
+- images
+- rmi
+- cache
+- import
+- help
+
+--------------------------------------------------
+BUILD
+--------------------------------------------------
+Build an image from a Docksmithfile.
+
+Usage:
+./docksmith_c build -t <name:tag> [-f Docksmithfile] [--no-cache] [context_dir]
+
+Notes:
+- -t or --tag is required.
+- context_dir defaults to current directory.
+- Relative -f paths are resolved against context_dir.
+- If tag is omitted, defaults to latest.
+
+Examples:
+./docksmith_c build -t sample:latest
+./docksmith_c build -t myapp:v1 -f Docksmithfile .
+./docksmith_c build -t myapp:v2 --no-cache ./sample-app
+
+--------------------------------------------------
+RUN
+--------------------------------------------------
+Run a command in a new container.
+
+Usage:
+./docksmith_c run [-e KEY=VALUE] <image>[:<tag>] [command...]
+
+Notes:
+- You can pass -e multiple times.
+- If image tag is omitted, defaults to latest.
+- If command is omitted, image default command is used.
+- Requires a Linux host kernel for execution (chroot + execve runtime).
+- Imported rootfs binaries must match host CPU architecture.
+
+Examples:
+./docksmith_c run sample:latest
+./docksmith_c run -e GREETING=hello sample:latest /bin/sh /app.sh
+./docksmith_c run -e A=1 -e B=2 sample /bin/sh -c "echo $A $B"
+
+--------------------------------------------------
+IMAGES
+--------------------------------------------------
+List images.
+
+Usage:
+./docksmith_c images
+
+--------------------------------------------------
+RMI
+--------------------------------------------------
+Remove an image and attempt to remove its layers.
+
+Usage:
+./docksmith_c rmi <image>[:<tag>]
+
+Notes:
+- If tag is omitted, defaults to latest.
+
+Examples:
+./docksmith_c rmi sample:latest
+./docksmith_c rmi sample
+
+--------------------------------------------------
+CACHE
+--------------------------------------------------
+Show build cache entries.
+
+Usage:
+./docksmith_c cache
+
+--------------------------------------------------
+IMPORT
+--------------------------------------------------
+Import a base image from a rootfs tarball.
+
+Usage:
+./docksmith_c import <name>[:<tag>] <rootfs.tar>
+
+Notes:
+- If tag is omitted, defaults to latest.
+
+Examples:
+./docksmith_c import alpine:3.19 alpine-minirootfs-3.19.1-x86_64.tar
+./docksmith_c import base ./rootfs.tar
+
+--------------------------------------------------
+TYPICAL FLOW
+--------------------------------------------------
+make
+./docksmith_c import alpine:3.19 alpine-minirootfs-3.19.1-x86_64.tar
+./docksmith_c build -t demo:v1 -f Docksmithfile .
+./docksmith_c images
+./docksmith_c run -e GREETING=hello demo:v1 /bin/sh /app.sh
+./docksmith_c cache
